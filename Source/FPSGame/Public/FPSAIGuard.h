@@ -8,6 +8,8 @@
 
 class UPawnSensingComponent;
 
+class ATargetPoint;
+
 UENUM(BlueprintType)
 enum class EAIState : uint8 {
 	Idle,
@@ -55,6 +57,19 @@ protected:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
 	void OnStateChanged(const EAIState& NewState);
+
+	UPROPERTY(EditInstanceOnly, Category = "Target")
+		ATargetPoint* tp0;
+	
+	UPROPERTY(EditInstanceOnly, Category = "Target")
+		ATargetPoint* tp1;
+
+	ATargetPoint* destination;
+
+	bool bIsPatrolling = false;
+
+
+	void Patrol();
 
 public:	
 	// Called every frame

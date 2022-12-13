@@ -6,6 +6,9 @@
 #include "DrawDebugHelpers.h"
 #include "Math/RotationMatrix.h"
 #include "FPSGameMode.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Engine/TargetPoint.h"
+
 // Sets default values
 AFPSAIGuard::AFPSAIGuard()
 {
@@ -22,6 +25,7 @@ AFPSAIGuard::AFPSAIGuard()
 
 void AFPSAIGuard::OnPawnSeen(APawn* SeenPawn) {
 	if (SeenPawn == nullptr) return;
+
 	DrawDebugSphere(GetWorld(), SeenPawn->GetActorLocation(), 32.0f, 12, FColor::Red, false, 10.0f);
 	AFPSGameMode* GM = Cast<AFPSGameMode>(GetWorld()->GetAuthGameMode());
 	if (GM) {
@@ -55,13 +59,20 @@ void AFPSAIGuard::ResetOrienTation() {
 
 	SetActorRotation(OriginalRotation);
 	SetGuardState(EAIState::Idle);
+	if (bIsPatrolling) {
+		Patrol();
+	}
 }
 
 // Called when the game starts or when spawned
 void AFPSAIGuard::BeginPlay()
 {
 	Super::BeginPlay();
+	bIsPatrolling = tp1 != nullptr && tp0 != nullptr;
 	OriginalRotation = GetActorRotation();
+	if (bIsPatrolling) {
+		Patrol();
+	}
 }
 
 void AFPSAIGuard::SetGuardState(EAIState NewState) {
@@ -72,11 +83,29 @@ void AFPSAIGuard::SetGuardState(EAIState NewState) {
 	OnStateChanged(GuardState);
 }
 
-
+void AFPSAIGuard::Patrol() {
+	if (destination == nullptr || destination==tp1) {
+		destination = tp0;
+	}
+	else {
+		destination = tp1;
+	}
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), destination->GetActorLocation());
+}
+ 
 // Called every frame
 void AFPSAIGuard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bIsPatrolling&&destination != nullptr) {
+		if (GuardState != EAIState::Idle) {
+			GetController()->StopMovement();
+		}
+		if (100.0f > (destination->GetActorLocation() - GetActorLocation()).Size()) {
+			Patrol();
+			UE_LOG(LogTemp,Warning, TEXT("Warning"));
+		}
+	}
 
 }
 
