@@ -26,6 +26,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	UProjectileMovementComponent* ProjectileMovement;
 
+	FRepMovement RepMovement;
+
 public:
 
 	AFPSProjectile();
